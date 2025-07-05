@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propuesta SIGEC-Mars | Reto Marte 2025</title>
+    <!-- Chosen Palette: Martian Harmony -->
+    <!-- Application Structure Plan: The application is structured as a single-page interactive dashboard with a sticky top navigation, departing from the linear PDF format to enhance user-driven exploration. The flow guides the user from the high-level 'Challenge' to the detailed 'Solution', then to the practical 'Viability' (timeline/budget), and finally to the broader 'Global Impact'. This thematic segmentation allows users to either follow a narrative path or jump directly to sections of interest. Key interactions like tabs for the core solution and clickable cards for impact details are chosen to break down complex information into digestible, engaging chunks, maximizing clarity and user engagement. -->
+    <!-- Visualization & Content Choices: 
+        - Martian Environment -> Goal: Inform -> Viz: Icon-based stat cards -> Justification: Quickly convey key environmental constraints.
+        - Solar Radiation Data -> Goal: Compare -> Viz: Bar Chart (Chart.js/Canvas) -> Justification: Visually demonstrates the energy deficit on Mars vs. Earth.
+        - Project Budget -> Goal: Compare/Inform -> Viz: Donut Chart (Chart.js/Canvas) -> Justification: Clearly shows proportional cost allocation across project phases.
+        - Project Phases -> Goal: Show Change/Process -> Viz: Interactive HTML/CSS Timeline -> Justification: Provides a clear, chronological overview of the project plan; interaction reveals details on demand.
+        - ISRU/Heat Recovery -> Goal: Organize/Show Process -> Viz: HTML/CSS Flowchart Diagram -> Justification: Maps complex interconnected processes (Sabatier, electrolysis) in a simple, visual format without relying on external graphics.
+        - Terrestrial Applications -> Goal: Organize/Inform -> Viz: Interactive Flip-Cards -> Justification: Presents dual-use cases in a compact, engaging way, linking them to global goals (SDGs) upon interaction. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDF6F0; 
+            color: #2C2C2C;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s ease, border-bottom-color 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #D97706; 
+            border-bottom-color: #D97706;
+        }
+        .timeline-item-content {
+            transition: all 0.3s ease;
+        }
+        .flip-card { perspective: 1000px; }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 0.75rem; padding: 1rem; }
+        .flip-card-back { transform: rotateY(180deg); }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-[#FDF6F0]/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-3">
+            <div class="flex justify-between items-center">
+                <a href="#hero" class="text-xl font-bold text-[#D97706]">SIGEC-Mars</a>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#challenge" class="nav-link font-semibold pb-1">El Reto</a>
+                    <a href="#solution" class="nav-link font-semibold pb-1">La Solución</a>
+                    <a href="#viability" class="nav-link font-semibold pb-1">Viabilidad</a>
+                    <a href="#impact" class="nav-link font-semibold pb-1">Impacto Global</a>
+                </div>
+                <button id="mobile-menu-button" class="md:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#D97706]">
+                    <div class="w-6 h-0.5 bg-[#2C2C2C] my-1"></div>
+                    <div class="w-6 h-0.5 bg-[#2C2C2C] my-1"></div>
+                    <div class="w-6 h-0.5 bg-[#2C2C2C] my-1"></div>
+                </button>
+            </div>
+            <div id="mobile-menu" class="hidden md:hidden mt-4 space-y-2">
+                <a href="#challenge" class="block nav-link text-center py-2">El Reto</a>
+                <a href="#solution" class="block nav-link text-center py-2">La Solución</a>
+                <a href="#viability" class="block nav-link text-center py-2">Viabilidad</a>
+                <a href="#impact" class="block nav-link text-center py-2">Impacto Global</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero" class="min-h-screen flex items-center bg-cover bg-center" style="background-color: #2C2C2C;">
+            <div class="container mx-auto px-6 text-center text-[#FDF6F0]">
+                <h1 class="text-4xl md:text-7xl font-black uppercase tracking-wider">Propuesta SIGEC-Mars</h1>
+                <p class="mt-4 text-lg md:text-2xl font-light max-w-3xl mx-auto">Una solución integrada para la autosuficiencia humana en Marte, transformando los desafíos del Planeta Rojo en oportunidades para la humanidad.</p>
+                <a href="#challenge" class="mt-8 inline-block bg-[#D97706] text-white font-bold py-3 px-8 rounded-full text-lg uppercase hover:bg-[#B45309] transition-colors duration-300">Explorar la Propuesta</a>
+            </div>
+        </section>
+        
+        <section id="challenge" class="py-20 md:py-32">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-5xl font-bold text-center">El Imperativo Marciano</h2>
+                <p class="mt-4 text-lg text-center max-w-3xl mx-auto">La misión es clara: 6 astronautas, 2 años en Marte. Sin reabastecimiento. La supervivencia depende de la innovación in situ. Nuestra propuesta responde a los desafíos fundamentales de energía, seguridad y recursos en el entorno más hostil conocido.</p>
+                <div class="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="bg-white/50 p-6 rounded-xl shadow-lg border border-gray-200/50">
+                        <h3 class="text-2xl font-bold text-[#D97706]">Atmósfera Extrema</h3>
+                        <p class="mt-2 font-semibold">95.3% Dióxido de Carbono</p>
+                        <p class="mt-1">Una atmósfera delgada y no respirable que es, a la vez, un recurso clave para la producción de combustible y oxígeno.</p>
+                    </div>
+                    <div class="bg-white/50 p-6 rounded-xl shadow-lg border border-gray-200/50">
+                        <h3 class="text-2xl font-bold text-[#D97706]">Energía Limitada</h3>
+                        <p class="mt-2 font-semibold">~40% de la luz solar terrestre</p>
+                        <p class="mt-1">La radiación solar es débil y las tormentas de polvo pueden oscurecer el cielo durante semanas, exigiendo un sistema energético híbrido y resiliente.</p>
+                    </div>
+                    <div class="bg-white/50 p-6 rounded-xl shadow-lg border border-gray-200/50">
+                        <h3 class="text-2xl font-bold text-[#D97706]">Vientos Implacables</h3>
+                        <p class="mt-2 font-semibold">Picos de hasta 100 km/h</p>
+                        <p class="mt-1">Lo que podría ser un peligro se convierte en una fuente de energía vital gracias a turbinas diseñadas para la fina atmósfera marciana.</p>
+                    </div>
+                    <div class="bg-white/50 p-6 rounded-xl shadow-lg border border-gray-200/50">
+                        <h3 class="text-2xl font-bold text-[#D97706]">Recursos Ocultos</h3>
+                        <p class="mt-2 font-semibold">>5% Hielo de agua en subsuelo</p>
+                        <p class="mt-1">Confirmado por misiones de la NASA y ESA, el hielo subsuperficial es la piedra angular para el soporte vital y la producción de combustible.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="solution" class="py-20 md:py-32 bg-[#fffcf7]">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-5xl font-bold text-center">La Solución: SIGEC-Mars</h2>
+                <p class="mt-4 text-lg text-center max-w-3xl mx-auto">SIGEC-Mars no es una colección de tecnologías, es un ecosistema simbiótico. Integra generación de energía, seguridad y gestión de recursos en un ciclo cerrado y autónomo, optimizado por una IA predictiva para maximizar la eficiencia y resiliencia.</p>
+                
+                <div class="mt-12">
+                    <div class="flex justify-center border-b border-gray-300">
+                        <button data-tab="energia" class="tab-button active text-lg font-bold py-4 px-6 border-b-2 border-[#D97706] text-[#D97706]">Eje 1: Energía</button>
+                        <button data-tab="fuego" class="tab-button text-lg font-bold py-4 px-6 border-b-2 border-transparent text-gray-500 hover:text-[#D97706]">Eje 2: Fuego</button>
+                        <button data-tab="recursos" class="tab-button text-lg font-bold py-4 px-6 border-b-2 border-transparent text-gray-500 hover:text-[#D97706]">Eje 3: Recursos</button>
+                    </div>
+
+                    <div id="energia" class="tab-content active mt-8">
+                        <p class="text-center mb-12">Un sistema de energía híbrido (solar, eólico y nuclear) garantiza un suministro ininterrumpido. Los datos climáticos en tiempo real permiten a la IA optimizar la generación y el consumo, asegurando energía incluso durante las tormentas de polvo más intensas.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                            <div>
+                                <h3 class="text-2xl font-bold mb-4 text-center">Comparativa de Irradiación Solar</h3>
+                                <div class="chart-container">
+                                    <canvas id="solarChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="space-y-6">
+                                <div class="bg-white p-6 rounded-lg shadow-md">
+                                    <h4 class="font-bold text-xl">☀️ Solar Bifacial</h4>
+                                    <p>Paneles que capturan luz por ambas caras, con autolimpieza para combatir el polvo marciano y maximizar la eficiencia bajo el débil sol.</p>
+                                </div>
+                                <div class="bg-white p-6 rounded-lg shadow-md">
+                                    <h4 class="font-bold text-xl">🌬️ Eólica de Eje Vertical</h4>
+                                    <p>Turbinas diseñadas para la fina atmósfera, capaces de transformar los potentes vientos marcianos en energía fiable día y noche.</p>
+                                </div>
+                                <div class="bg-white p-6 rounded-lg shadow-md">
+                                    <h4 class="font-bold text-xl">⚛️ Nuclear Kilopower</h4>
+                                    <p>Un reactor compacto y seguro proporciona la energía base constante, crítica para el soporte vital y la recuperación de calor.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="fuego" class="tab-content hidden mt-8">
+                        <p class="text-center mb-12">En un hábitat cerrado, el fuego es un riesgo catastrófico. Nuestro sistema de supresión no utiliza agua, un recurso demasiado preciado, sino el propio regolito marciano para extinguir fuegos en menos de 10 segundos.</p>
+                         <div class="bg-white p-8 rounded-xl shadow-xl max-w-4xl mx-auto">
+                            <h3 class="text-2xl font-bold text-center mb-6">Sistema de Supresión de Incendios</h3>
+                            <div class="flex flex-col md:flex-row justify-around items-center space-y-4 md:space-y-0">
+                                <div class="text-center">
+                                    <div class="text-5xl mb-2">🔥</div>
+                                    <h4 class="font-bold">1. Detección</h4>
+                                    <p>Sensores IR y de humo identifican el conato.</p>
+                                </div>
+                                <div class="text-3xl text-gray-300 font-thin hidden md:block">→</div>
+                                <div class="text-center">
+                                    <div class="text-5xl mb-2">💨</div>
+                                    <h4 class="font-bold">2. Activación</h4>
+                                    <p>Inyección de aerosol de regolito micronizado.</p>
+                                </div>
+                                <div class="text-3xl text-gray-300 font-thin hidden md:block">→</div>
+                                <div class="text-center">
+                                    <div class="text-5xl mb-2">🛡️</div>
+                                    <h4 class="font-bold">3. Extinción</h4>
+                                    <p class="font-bold text-[#D97706]">en &lt; 10 segundos</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="recursos" class="tab-content hidden mt-8">
+                        <p class="text-center mb-12">La autosuficiencia se logra transformando los recursos locales. El CO₂ atmosférico y el hielo de agua se convierten en oxígeno, agua potable y combustible para cohetes, mientras que el calor residual se reutiliza para calefacción y agricultura.</p>
+                        <div class="bg-white p-8 rounded-xl shadow-xl max-w-5xl mx-auto">
+                            <h3 class="text-2xl font-bold text-center mb-8">Ciclo de Recursos In-Situ (ISRU)</h3>
+                            <div class="relative flex flex-col items-center space-y-4">
+                                <div class="bg-blue-100 text-blue-800 p-4 rounded-lg shadow text-center w-full md:w-1/2">
+                                    <h4 class="font-bold">1. Extracción de Recursos</h4>
+                                    <p>Hielo de Agua (H₂O) del subsuelo y CO₂ de la atmósfera.</p>
+                                </div>
+                                <div class="text-3xl text-gray-400">↓</div>
+                                <div class="w-full flex flex-col md:flex-row justify-center items-start gap-8">
+                                    <div class="bg-red-100 text-red-800 p-4 rounded-lg shadow text-center flex-1">
+                                        <h4 class="font-bold">2a. Electrólisis</h4>
+                                        <p>2H₂O → 2H₂ + O₂</p>
+                                        <p class="mt-2 text-sm font-semibold">Produce Oxígeno para respirar e Hidrógeno.</p>
+                                    </div>
+                                    <div class="bg-green-100 text-green-800 p-4 rounded-lg shadow text-center flex-1">
+                                        <h4 class="font-bold">2b. Reacción Sabatier</h4>
+                                        <p>CO₂ + 4H₂ → CH₄ + 2H₂O</p>
+                                        <p class="mt-2 text-sm font-semibold">Produce Metano (combustible) y regenera Agua.</p>
+                                    </div>
+                                </div>
+                                <div class="text-3xl text-gray-400">↓</div>
+                                <div class="bg-yellow-100 text-yellow-800 p-4 rounded-lg shadow text-center w-full md:w-1/2">
+                                    <h4 class="font-bold">3. Productos Finales</h4>
+                                    <p>Oxígeno, Combustible (CH₄) y Agua Potable. El calor residual del proceso calienta el hábitat (+50°C) y los invernaderos.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="viability" class="py-20 md:py-32">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-5xl font-bold text-center">Viabilidad y Plan de Proyecto</h2>
+                <p class="mt-4 text-lg text-center max-w-3xl mx-auto">Nuestra propuesta se basa en un plan de desarrollo realista y por fases, con un presupuesto transparente y validación en análogos terrestres y simuladores de la NASA.</p>
+                <div class="mt-16 grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
+                    <div class="lg:col-span-3">
+                        <h3 class="text-2xl font-bold mb-8 text-center">Cronograma de Desarrollo (18 Meses)</h3>
+                        <div class="relative border-l-4 border-[#D97706] ml-4 pl-4 space-y-12">
+                            <div class="timeline-item">
+                                <div class="absolute -left-6 bg-[#D97706] w-8 h-8 rounded-full border-4 border-[#FDF6F0]"></div>
+                                <div class="timeline-item-content bg-white p-6 rounded-lg shadow-md">
+                                    <h4 class="text-xl font-bold">Fase 1: Diseño</h4>
+                                    <p class="font-semibold text-gray-600">4 meses | $1.2M</p>
+                                    <p class="mt-2">Modelado CFD, esquemas de integración del sistema y diseño conceptual detallado.</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="absolute -left-6 bg-[#D97706] w-8 h-8 rounded-full border-4 border-[#FDF6F0]"></div>
+                                <div class="timeline-item-content bg-white p-6 rounded-lg shadow-md">
+                                    <h4 class="text-xl font-bold">Fase 2: Prototipado</h4>
+                                    <p class="font-semibold text-gray-600">6 meses | $3.5M</p>
+                                    <p class="mt-2">Construcción de una unidad funcional a escala 1:5, incluyendo pruebas de materiales y componentes.</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="absolute -left-6 bg-[#D97706] w-8 h-8 rounded-full border-4 border-[#FDF6F0]"></div>
+                                <div class="timeline-item-content bg-white p-6 rounded-lg shadow-md">
+                                    <h4 class="text-xl font-bold">Fase 3: Validación</h4>
+                                    <p class="font-semibold text-gray-600">8 meses | $4.0M</p>
+                                    <p class="mt-2">Pruebas en simulador marciano (DRATS-NASA) y análogo terrestre (Río Tinto, España) para validar el rendimiento en condiciones extremas.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2">
+                        <h3 class="text-2xl font-bold mb-4 text-center">Distribución del Presupuesto Total ($8.7M)</h3>
+                        <div class="chart-container">
+                            <canvas id="budgetChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="impact" class="py-20 md:py-32 bg-[#fffcf7]">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-5xl font-bold text-center">Impacto Global y Retorno a la Humanidad</h2>
+                <p class="mt-4 text-lg text-center max-w-3xl mx-auto">Resolver los desafíos de Marte nos obliga a crear tecnologías que tienen un profundo impacto en la Tierra. SIGEC-Mars no es solo un proyecto espacial; es un motor de innovación para un futuro sostenible.</p>
+                <div class="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="flip-card h-64">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front bg-[#B45309] text-white shadow-lg">
+                                <h3 class="text-2xl font-bold">Energía en Zonas Áridas</h3>
+                                <p class="mt-2">Tecnología solar y eólica para regiones remotas.</p>
+                            </div>
+                            <div class="flip-card-back bg-white text-gray-800 shadow-xl">
+                                <h4 class="font-bold">Alineado con ODS</h4>
+                                <p class="text-3xl mt-2">⑦ ⑨</p>
+                                <p class="text-sm mt-2">Energía Asequible e Industria, Innovación e Infraestructura.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flip-card h-64">
+                        <div class="flip-card-inner">
+                             <div class="flip-card-front bg-[#065f46] text-white shadow-lg">
+                                <h3 class="text-2xl font-bold">Captura de CO₂ Industrial</h3>
+                                <p class="mt-2">Reducción del 90% de emisiones en cementeras.</p>
+                            </div>
+                            <div class="flip-card-back bg-white text-gray-800 shadow-xl">
+                                <h4 class="font-bold">Alineado con ODS</h4>
+                                <p class="text-3xl mt-2">⑨ ⑪ ⑬</p>
+                                <p class="text-sm mt-2">Industria, Ciudades Sostenibles y Acción por el Clima.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flip-card h-64">
+                        <div class="flip-card-inner">
+                             <div class="flip-card-front bg-[#1e40af] text-white shadow-lg">
+                                <h3 class="text-2xl font-bold">Agricultura Sostenible</h3>
+                                <p class="mt-2">Invernaderos eficientes para climas extremos.</p>
+                            </div>
+                            <div class="flip-card-back bg-white text-gray-800 shadow-xl">
+                                <h4 class="font-bold">Alineado con ODS</h4>
+                                <p class="text-3xl mt-2">⑫ ⑮</p>
+                                <p class="text-sm mt-2">Producción Responsable y Vida de Ecosistemas Terrestres.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-16 text-center bg-white p-8 rounded-xl shadow-2xl max-w-2xl mx-auto border-t-4 border-[#D97706]">
+                    <h3 class="text-2xl font-bold">Un Retorno Económico y Social</h3>
+                    <p class="text-5xl font-black text-[#D97706] my-4">5x</p>
+                    <p class="text-xl font-semibold">Retorno de la Inversión (ROI) estimado para 2030 a través de la licencia de estas tecnologías de doble uso.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-[#2C2C2C] text-white">
+        <div class="container mx-auto px-6 py-8 text-center">
+            <p class="font-bold text-lg">SIGEC-Mars | Soluciones Aeroespaciales Avanzadas</p>
+            <p class="mt-2 text-sm text-gray-400">&copy; 2025 - Propuesta para el Reto Marte.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tab = button.dataset.tab;
+
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('active', 'text-[#D97706]', 'border-[#D97706]');
+                        btn.classList.add('text-gray-500', 'border-transparent');
+                    });
+                    button.classList.add('active', 'text-[#D97706]', 'border-[#D97706]');
+                    button.classList.remove('text-gray-500', 'border-transparent');
+                    
+                    tabContents.forEach(content => {
+                        if (content.id === tab) {
+                            content.classList.remove('hidden');
+                            content.classList.add('active');
+                        } else {
+                            content.classList.add('hidden');
+                            content.classList.remove('active');
+                        }
+                    });
+                });
+            });
+
+            const solarCtx = document.getElementById('solarChart').getContext('2d');
+            new Chart(solarCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Tierra (promedio)', 'Marte (promedio)'],
+                    datasets: [{
+                        label: 'Irradiación Solar (W/m²)',
+                        data: [1361, 590],
+                        backgroundColor: ['#3b82f6', '#D97706'],
+                        borderColor: ['#1d4ed8', '#B45309'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'La energía solar en Marte es un 58% menor que en la Tierra.' }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'W/m²' }
+                        }
+                    }
+                }
+            });
+
+            const budgetCtx = document.getElementById('budgetChart').getContext('2d');
+            new Chart(budgetCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Diseño ($1.2M)', 'Prototipado ($3.5M)', 'Validación ($4.0M)'],
+                    datasets: [{
+                        label: 'Distribución del Presupuesto',
+                        data: [1.2, 3.5, 4.0],
+                        backgroundColor: ['#34d399', '#f59e0b', '#ef4444'],
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: false }
+                    }
+                }
+            });
+
+            const navLinks = document.querySelectorAll('header a[href^="#"]');
+            const sections = document.querySelectorAll('main section');
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 100) {
+                        current = section.getAttribute('id');
+                    }
+                });
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active');
+                    }
+                })
+            });
+        });
+    </script>
+
+</body>
+</html>
